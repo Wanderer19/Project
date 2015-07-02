@@ -2,20 +2,23 @@
 
     <property name="sourceRepository" value="https://github.com/Wanderer19/First.git" />
     <property name="projectDirectory" value="First"/>
-    <property name="branchName" value="master"/>
+    <property name="branchName" value="newBranch"/>
     <property name="sources" value="sources"/>
     <property name="maven.home" value="C:\Program Files\Appache\apache-maven-3.2.5"/>
     <property name="maven.options" value="-DskipTests=true --update-snapshots -DrepoUrl=http://vm-maven:8081/nexus/content/groups/public/"/>
     <property name="archives" value="archives"/>
     <property name="localRepository" value="C:\Users\wanderer\.m2\repository"/>
+    <property name="git-location" value="C:\Program Files (x86)\Git\bin\git.exe"/>
+
 
     <target name="all">
         <antcall target="clean-all"/>
         <antcall target="creating"/>
         <antcall target="git-cloning"/>
+        <antcall target="zip-sources"/>
         <antcall target="building"/>
-        <antcall target="archiving"/>
-        <antcall target="delete_sources"/>
+        <antcall target="zip-modules-and-libs"/>
+        <antcall target="delete-sources-and-local-repo"/>
     </target>
 
     <target name="clean-all">
@@ -34,14 +37,18 @@
         <exec executable="cmd">
             <arg value="/c"/>
             <arg value="git-cloning.bat"/>
-            <arg value="-p"/>
             <arg value="${sources}"/>
-            <arg value="${sourceRepository}"/>
-            <arg value="${projectDirectory}"/>
+            <arg value="${git-location}"/>
             <arg value="${branchName}"/>
+            <arg value="${sourceRepository}"/>
+            <arg value="-p"/>
         </exec>
     </target>
 
+    <target name="zip-sources">
+        <zip destfile="${archives}/sources.zip"  basedir="${sources}"
+             update="true"/>
+    </target>
 
     <macrodef name="maven">
         <attribute name="options" default="" />
@@ -75,9 +82,9 @@
                resultproperty="maven.build.result"/>
     </target>
 
-    <target name="archiving">
+    <target name="zip-modules-and-libs">
 
-        <zip destfile="${archives}/project.zip"  basedir="${sources}/${projectDirectory}/target"
+        <zip destfile="${archives}/modules.zip"  basedir="${sources}/${projectDirectory}/target"
              includes="*.jar, *.war, *.ear"
              update="true"/>
 
@@ -85,8 +92,9 @@
              update="true"/>
     </target>
 
-    <target name="delete_sources">
+    <target name="delete-sources-and-local-repo">
         <delete dir="${sources}"/>
+        <delete dir="${localRepository}"/>
     </target>
 
 </project>
