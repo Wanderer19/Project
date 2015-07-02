@@ -5,9 +5,9 @@
     <property name="branchName" value="newBranch"/>
     <property name="sources" value="sources"/>
     <property name="maven.home" value="C:\Program Files\Appache\apache-maven-3.2.5"/>
-    <property name="maven.options" value="-DskipTests=true --update-snapshots -DrepoUrl=http://vm-maven:8081/nexus/content/groups/public/"/>
+    <property name="maven.options" value="-DskipTests=true --update-snapshots"/>
     <property name="archives" value="archives"/>
-    <property name="localRepository" value="C:\Users\wanderer\.m2\repository"/>
+    <property name="localRepository" value="C:\Users\wanderer\Desktop\repo"/>
     <property name="git-location" value="C:\Program Files (x86)\Git\bin\git.exe"/>
 
 
@@ -70,7 +70,7 @@
                 </classpath>
                 <sysproperty key="classworlds.conf" value="${maven.home}/bin/m2.conf" />
                 <sysproperty key="maven.home" value="${maven.home}" />
-                <arg line="--batch-mode @{options} @{goal}" />
+                <arg line="--batch-mode -Dmaven.repo.local=${localRepository} @{options} @{goal}" />
             </java>
         </sequential>
     </macrodef>
