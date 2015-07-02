@@ -1,28 +1,33 @@
-<project default="all">
+<project default="all" >
 
     <property name="sourceRepository" value="https://github.com/Wanderer19/First.git" />
     <property name="projectDirectory" value="First"/>
-    <property name="branchName" value="newBranch"/>
+    <property name="branchName" value="master"/>
     <property name="sources" value="sources"/>
     <property name="maven.home" value="C:\Program Files\Appache\apache-maven-3.2.5"/>
-    <property name="results" value="results"/>
+    <property name="maven.options" value="-DskipTests=true --update-snapshots -DrepoUrl=http://vm-maven:8081/nexus/content/groups/public/"/>
+    <property name="archives" value="archives"/>
+    <property name="localRepository" value="C:\Users\wanderer\.m2\repository"/>
 
     <target name="all">
-        <antcall target="clean"/>
+        <antcall target="clean-all"/>
         <antcall target="creating"/>
         <antcall target="git-cloning"/>
         <antcall target="building"/>
         <antcall target="archiving"/>
+        <antcall target="delete_sources"/>
     </target>
 
-    <target name="clean">
+    <target name="clean-all">
         <delete dir="${sources}"/>
-        <delete dir="${results}"/>
+        <delete dir="${archives}"/>
+        <delete dir="${localRepository}"/>
     </target>
 
     <target name="creating">
         <mkdir dir="${sources}"/>
-        <mkdir dir="${results}"/>
+        <mkdir dir="${archives}"/>
+        <mkdir dir="${localRepository}"/>
     </target>
 
     <target name="git-cloning">
@@ -65,17 +70,23 @@
 
     <target name="building">
         <maven basedir="${sources}/${projectDirectory}"
-               goal="install"
+               goal="clean install"
+               options="${maven.options}"
                resultproperty="maven.build.result"/>
     </target>
 
     <target name="archiving">
-        <zip destfile="${results}/libs.zip"
-             basedir="${sources}/${projectDirectory}/libs"
-             update="true"/>
 
-        <zip destfile="${results}/project.zip"  basedir="${sources}/${projectDirectory}/target"
+        <zip destfile="${archives}/project.zip"  basedir="${sources}/${projectDirectory}/target"
              includes="*.jar, *.war, *.ear"
              update="true"/>
+
+        <zip destfile="${archives}/libs.zip"  basedir="${localRepository}"
+             update="true"/>
     </target>
+
+    <target name="delete_sources">
+        <delete dir="${sources}"/>
+    </target>
+
 </project>
