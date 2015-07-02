@@ -1,0 +1,81 @@
+<project default="all">
+
+    <property name="sourceRepository" value="https://github.com/Wanderer19/First.git" />
+    <property name="projectDirectory" value="First"/>
+    <property name="branchName" value="newBranch"/>
+    <property name="sources" value="sources"/>
+    <property name="maven.home" value="C:\Program Files\Appache\apache-maven-3.2.5"/>
+    <property name="results" value="results"/>
+
+    <target name="all">
+        <antcall target="clean"/>
+        <antcall target="creating"/>
+        <antcall target="git-cloning"/>
+        <antcall target="building"/>
+        <antcall target="archiving"/>
+    </target>
+
+    <target name="clean">
+        <delete dir="${sources}"/>
+        <delete dir="${results}"/>
+    </target>
+
+    <target name="creating">
+        <mkdir dir="${sources}"/>
+        <mkdir dir="${results}"/>
+    </target>
+
+    <target name="git-cloning">
+        <exec executable="cmd">
+            <arg value="/c"/>
+            <arg value="git-cloning.bat"/>
+            <arg value="-p"/>
+            <arg value="${sources}"/>
+            <arg value="${sourceRepository}"/>
+            <arg value="${projectDirectory}"/>
+            <arg value="${branchName}"/>
+        </exec>
+    </target>
+
+
+    <macrodef name="maven">
+        <attribute name="options" default="" />
+        <attribute name="goal" />
+        <attribute name="basedir" />
+        <attribute name="resultproperty" default="maven.result" />
+        <element name="args" implicit="true" optional="true" />
+        <sequential>
+            <java classname="org.codehaus.classworlds.Launcher" fork="true"
+                  dir="@{basedir}" resultproperty="@{resultproperty}">
+                <jvmarg value="-Xmx512m"/>
+                <classpath>
+                    <fileset dir="${maven.home}/boot">
+                        <include name="*.jar" />
+                    </fileset>
+                    <fileset dir="${maven.home}/lib">
+                        <include name="*.jar" />
+                    </fileset>
+                </classpath>
+                <sysproperty key="classworlds.conf" value="${maven.home}/bin/m2.conf" />
+                <sysproperty key="maven.home" value="${maven.home}" />
+                <arg line="--batch-mode @{options} @{goal}" />
+            </java>
+        </sequential>
+    </macrodef>
+
+    <target name="building">
+        <maven basedir="${sources}/${projectDirectory}"
+               goal="install"
+               resultproperty="maven.build.result"/>
+    </target>
+
+    <target name="archiving">
+        <zip destfile="${results}/libs.zip"
+             basedir="${sources}/${projectDirectory}/libs"
+             update="true"/>
+
+        <zip destfile="${results}/project.zip"  basedir="${sources}/${projectDirectory}/target"
+             includes="*.jar, *.war, *.ear"
+             update="true"/>
+    </target>
+</project>
