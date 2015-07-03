@@ -44,7 +44,7 @@
             <delete dir="archives"/>
             <delete dir="archives/install"/>
             <delete dir="archives/sources"/>
-         <!--   <delete dir="${localRepository}"/>  -->
+            <delete dir="${localRepository}"/>
 
         </target>
 
@@ -83,8 +83,6 @@
 
              <for  param="repoUrl" list="${sourceRepositoryUrls}">
                  <sequential>
-                     <!--<zip destfile="archives/sources/${@{repoUrl}.project}-sources.zip"  basedir="sources/${@{repoUrl}.project}"
-                          update="true"/> -->
                      <gitArchive destdir="archives/sources/${@{repoUrl}.project}-sources.zip" basedir="sources/${@{repoUrl}.project}"/>
                  </sequential>
              </for>
@@ -130,10 +128,6 @@
         <target name="zipLocalRepository">
             <zip destfile="archives/maven-repository.zip"  basedir="${localRepository}"
                 update="true"/>
-
-         <!--   <zip destfile="archives/sources.zip"  basedir="archives/sources"
-                 update="true"/>
-            <delete dir="archives/sources"/> -->
         </target>
 
         <target name="getRepositoriesArtifacts">
@@ -166,7 +160,7 @@
 
         <target name="deleteSourcesAndLocalRepo">
             <delete dir="sources"/>
-           <!-- <delete dir="${localRepository}"/> -->
+           <delete dir="${localRepository}"/>
             <delete dir="archives/install"/>
         </target>
 
