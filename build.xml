@@ -3,7 +3,7 @@
         <property name="mavenHome" value="C:\Program Files\Appache\apache-maven-3.2.5"/>
         <property name="gitLocation" value="C:\Program Files (x86)\Git\bin\git.exe"/>
 
-        <property name="localRepository" value="C:\Users\wanderer\Desktop\repository"/>
+        <property name="localRepository" value="C:\Users\wanderer\Desktop\libs"/>
         <property name="sourceRepositoryUrls" value="https://github.com/angelozerr/tern.java.git,https://github.com/datastax/java-driver.git"/>
 
         <property name="https://github.com/angelozerr/tern.java.git.branch" value="master"/>
@@ -22,7 +22,7 @@
             <antcall target="cleanAll"/>
             <antcall target="creatingNeededDirs"/>
 
-            <antcall target="cloneSorce"/>
+            <antcall target="cloneSource"/>
             <antcall target="zipSource"/>
 
             <antcall target="buildSource"/>
@@ -43,19 +43,20 @@
             <delete dir="sources"/>
             <delete dir="archives"/>
             <delete dir="archives/install"/>
-           <!--
-            <delete dir="${localRepository}"/>
-           -->
+            <delete dir="archives/sources"/>
+         <!--   <delete dir="${localRepository}"/>  -->
+
         </target>
 
         <target name="creatingNeededDirs">
             <mkdir dir="sources"/>
-             <mkdir dir="archives"/>
+            <mkdir dir="archives"/>
             <mkdir dir="archives/install"/>
+            <mkdir dir="archives/sources"/>
             <mkdir dir="${localRepository}"/>
         </target>
 
-        <target name="cloneSorce">
+        <target name="cloneSource">
             <for  param="repoUrl" list="${sourceRepositoryUrls}">
                 <sequential>
                     <clone repoUrl="@{repoUrl}"/>
@@ -79,8 +80,13 @@
         </macrodef>
 
          <target name="zipSource">
-            <zip destfile="archives/sources.zip"  basedir="sources"
-             update="true"/>
+
+             <for  param="repoUrl" list="${sourceRepositoryUrls}">
+                 <sequential>
+                     <zip destfile="archives/sources/${@{repoUrl}.project}-sources.zip"  basedir="sources/${@{repoUrl}.project}"
+                          update="true"/>
+                 </sequential>
+             </for>
         </target>
 
         <target name="buildSource">
@@ -104,8 +110,12 @@
         </macrodef>
 
         <target name="zipLocalRepository">
-             <zip destfile="archives/libs.zip"  basedir="${localRepository}"
+            <zip destfile="archives/maven-repository.zip"  basedir="${localRepository}"
                 update="true"/>
+
+            <zip destfile="archives/sources.zip"  basedir="archives/sources"
+                 update="true"/>
+            <delete dir="archives/sources"/>
         </target>
 
         <target name="getRepositoriesArtifacts">
@@ -138,7 +148,7 @@
 
         <target name="deleteSourcesAndLocalRepo">
             <delete dir="sources"/>
-            <delete dir="${localRepository}"/>
+           <!-- <delete dir="${localRepository}"/> -->
             <delete dir="archives/install"/>
         </target>
 
