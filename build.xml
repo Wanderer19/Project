@@ -1,19 +1,9 @@
 <project default="all" >
 
-    <property name="sourceRepositoryUrl" value="https://github.com/angelozerr/tern.java.git"/>
-    <property name="branchName" value="master"/>
-    <property name="modulePaths" value="tern.java\core,tern.java\eclipse"/>
-    <property name="pomPath" value="tern.java"/>
-
-    <!--
-        NEW
-     -->
         <property name="mavenHome" value="C:\Program Files\Appache\apache-maven-3.2.5"/>
-        <property name="localRepository" value="C:\Users\wanderer\Desktop\repository"/>
         <property name="gitLocation" value="C:\Program Files (x86)\Git\bin\git.exe"/>
 
-
-
+        <property name="localRepository" value="C:\Users\wanderer\Desktop\repository"/>
         <property name="sourceRepositoryUrls" value="https://github.com/angelozerr/tern.java.git,https://github.com/datastax/java-driver.git"/>
 
         <property name="https://github.com/angelozerr/tern.java.git.branch" value="master"/>
@@ -26,67 +16,54 @@
 
         <property name="https://github.com/angelozerr/tern.java.git.modules" value="core,eclipse"/>
         <property name="https://github.com/datastax/java-driver.git.modules" value="driver-core,driver-mapping"/>
-    <!--
-         NEW END
-      -->
-
 
         <target name="all">
-            <!--
-                Идти по всем репозиториям
-                возможно написаь макрос, который все сделает для проекта, атрибут - url
-            -->
             <antcall target="bootstrap"/>
             <antcall target="cleanAll"/>
             <antcall target="creatingNeededDirs"/>
 
-            <for  param="repoUrl" list="${sourceRepositoryUrls}">
-                <sequential>
-                    <gitTask repoUrl="@{repoUrl}"/>
-                </sequential>
-            </for>
+            <antcall target="cloneSorce"/>
+            <antcall target="zipSource"/>
 
-            <!--
-                zip sources
-            -->
+            <antcall target="buildSource"/>
+            <antcall target="zipLocalRepository"/>
 
-            <antcall target="zipsSources"/>
+            <antcall target="getRepositoriesArtifacts"/>
+            <antcall target="zipArtifacts"/>
 
-            <!--
-                build
-            -->
-
-            <for  param="repoUrl" list="${sourceRepositoryUrls}">
-                <sequential>
-                    <buildTask repoUrl="@{repoUrl}"/>
-                </sequential>
-            </for>
-
-            <!--
-                zip libs
-            -->
-
-            <antcall target="zipLibs"/>
-
-            <!--
-                zip modules
-            -->
-
-            <for  param="repoUrl" list="${sourceRepositoryUrls}">
-                <sequential>
-                    <mkdir dir="archives/install/${@{repoUrl}.project}"/>
-                    <modulesTask repoUrl="@{repoUrl}"/>
-                </sequential>
-            </for>
-
-            <!--
-                delete
-            -->
             <antcall target="deleteSourcesAndLocalRepo"/>
         </target>
 
+         <target name="bootstrap">
+            <mkdir dir="${user.home}/.ant/lib"/>
+            <get dest="${user.home}/.ant/lib/ant-contrib.jar" src="http://search.maven.org/remotecontent?filepath=ant-contrib/ant-contrib/1.0b3/ant-contrib-1.0b3.jar"/>
+         </target>
 
-        <macrodef name="gitTask">
+        <target name="cleanAll">
+            <delete dir="sources"/>
+            <delete dir="archives"/>
+            <delete dir="archives/install"/>
+           <!--
+            <delete dir="${localRepository}"/>
+           -->
+        </target>
+
+        <target name="creatingNeededDirs">
+            <mkdir dir="sources"/>
+             <mkdir dir="archives"/>
+            <mkdir dir="archives/install"/>
+            <mkdir dir="${localRepository}"/>
+        </target>
+
+        <target name="cloneSorce">
+            <for  param="repoUrl" list="${sourceRepositoryUrls}">
+                <sequential>
+                    <clone repoUrl="@{repoUrl}"/>
+                </sequential>
+            </for>
+        </target>
+
+        <macrodef name="clone">
             <attribute name="repoUrl"/>
             <sequential>
                 <exec executable="cmd">
@@ -101,7 +78,20 @@
             </sequential>
         </macrodef>
 
-        <macrodef name="buildTask">
+         <target name="zipSource">
+            <zip destfile="archives/sources.zip"  basedir="sources"
+             update="true"/>
+        </target>
+
+        <target name="buildSource">
+            <for  param="repoUrl" list="${sourceRepositoryUrls}">
+                <sequential>
+                    <build repoUrl="@{repoUrl}"/>
+                </sequential>
+            </for>
+        </target>
+
+        <macrodef name="build">
             <attribute name="repoUrl"/>
             <sequential>
                 <exec executable="cmd">
@@ -113,7 +103,21 @@
             </sequential>
         </macrodef>
 
-        <macrodef name="modulesTask">
+        <target name="zipLocalRepository">
+             <zip destfile="archives/libs.zip"  basedir="${localRepository}"
+                update="true"/>
+        </target>
+
+        <target name="getRepositoriesArtifacts">
+            <for  param="repoUrl" list="${sourceRepositoryUrls}">
+                <sequential>
+                    <mkdir dir="archives/install/${@{repoUrl}.project}"/>
+                    <getModulesArtifacts repoUrl="@{repoUrl}"/>
+                </sequential>
+            </for>
+        </target>
+
+        <macrodef name="getModulesArtifacts">
             <attribute name="repoUrl"/>
             <sequential>
                 <for  param="modulePath" list="${@{repoUrl}.modules}">
@@ -123,92 +127,19 @@
                         </copy>
                     </sequential>
                 </for>
-
-                <zip destfile="archives/install.zip"  basedir="archives/install"
-                     update="true"/>
-                <delete dir="archives/install"/>
             </sequential>
         </macrodef>
 
-
-        <target name="main">
-            <antcall target="bootstrap"/>
-            <antcall target="cleanAll"/>
-            <antcall target="creatingNeededDirs"/>
-            <antcall target="gitCloning"/>
-            <antcall target="zipsSources"/>
-            <antcall target="building"/>
-            <antcall target="zipLibs"/>
-            <antcall target="zipModules"/>
-            <antcall target="deleteSourcesAndLocalRepo"/>
-        </target>
-
-        <target name="bootstrap">
-            <mkdir dir="${user.home}/.ant/lib"/>
-            <get dest="${user.home}/.ant/lib/ant-contrib.jar" src="http://search.maven.org/remotecontent?filepath=ant-contrib/ant-contrib/1.0b3/ant-contrib-1.0b3.jar"/>
-        </target>
-
-        <target name="cleanAll">
-            <delete dir="sources"/>
-            <delete dir="archives"/>
+        <target name="zipArtifacts">
+            <zip destfile="archives/install.zip"  basedir="archives/install"
+                 update="true"/>
             <delete dir="archives/install"/>
         </target>
 
-        <target name="creatingNeededDirs">
-            <mkdir dir="sources"/>
-            <mkdir dir="archives"/>
-            <mkdir dir="archives/install"/>
-        </target>
-
-        <target name="gitCloning">
-            <exec executable="cmd">
-                <arg value="/c"/>
-                <arg value="git-cloning.bat"/>
-                <arg value="sources"/>
-                <arg value="${gitLocation}"/>
-                <arg value="${branchName}"/>
-                <arg value="${sourceRepositoryUrl}"/>
-                <arg value="-p"/>
-            </exec>
-        </target>
-
-        <target name="zipsSources">
-            <zip destfile="archives/sources.zip"  basedir="sources"
-                 update="true"/>
-        </target>
-
-        <target name="building">
-            <sequential>
-                <exec executable="cmd">
-                    <arg value="/c"/>
-                    <arg value="build.bat"/>
-                    <arg value="sources/${pomPath}"/>
-                    <arg value="-p"/>
-                </exec>
-            </sequential>
-        </target>
-
-        <target name="zipLibs">
-            <zip destfile="archives/libs.zip"  basedir="${localRepository}"
-                 update="true"/>
-        </target>
-
-        <target name="zipModules">
-            <for  param="modulePath" list="${modulePaths}">
-                <sequential>
-                    <copy todir="archives/modules">
-                        <fileset dir="sources/@{modulePath}" includes="**/target/*.jar, **/target/*.war, **/target/*.ear"/>
-                    </copy>
-                </sequential>
-            </for>
-            <zip destfile="archives/modules.zip"  basedir="archives/modules"
-                 update="true"/>
-        </target>
-
         <target name="deleteSourcesAndLocalRepo">
-
+            <delete dir="sources"/>
             <delete dir="${localRepository}"/>
-            <delete dir="archives/modules"/>
+            <delete dir="archives/install"/>
         </target>
 
         <taskdef resource="net/sf/antcontrib/antlib.xml"/>
