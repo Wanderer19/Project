@@ -83,11 +83,14 @@
 
              <for  param="repoUrl" list="${sourceRepositoryUrls}">
                  <sequential>
-                     <zip destfile="archives/sources/${@{repoUrl}.project}-sources.zip"  basedir="sources/${@{repoUrl}.project}"
-                          update="true"/>
+                     <!--<zip destfile="archives/sources/${@{repoUrl}.project}-sources.zip"  basedir="sources/${@{repoUrl}.project}"
+                          update="true"/> -->
+                     <gitArchive destdir="archives/sources/${@{repoUrl}.project}-sources.zip" basedir="sources/${@{repoUrl}.project}"/>
                  </sequential>
              </for>
         </target>
+
+
 
         <target name="buildSource">
             <for  param="repoUrl" list="${sourceRepositoryUrls}">
@@ -96,6 +99,21 @@
                 </sequential>
             </for>
         </target>
+
+        <macrodef name="gitArchive">
+            <attribute name="basedir"/>
+            <attribute name="destdir"/>
+            <sequential>
+                <exec executable="cmd">
+                    <arg value="/c"/>
+                    <arg value="git-archive.bat"/>
+                    <arg value="@{basedir}"/>
+                    <arg value="${gitLocation}"/>
+                    <arg value="@{destdir}"/>
+                    <arg value="-p"/>
+                </exec>
+            </sequential>
+        </macrodef>
 
         <macrodef name="build">
             <attribute name="repoUrl"/>
@@ -113,9 +131,9 @@
             <zip destfile="archives/maven-repository.zip"  basedir="${localRepository}"
                 update="true"/>
 
-            <zip destfile="archives/sources.zip"  basedir="archives/sources"
+         <!--   <zip destfile="archives/sources.zip"  basedir="archives/sources"
                  update="true"/>
-            <delete dir="archives/sources"/>
+            <delete dir="archives/sources"/> -->
         </target>
 
         <target name="getRepositoriesArtifacts">
