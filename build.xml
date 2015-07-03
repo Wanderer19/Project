@@ -1,81 +1,98 @@
-<project default="all" >
+<project default="main" >
 
-    <property name="sourceRepository" value="https://github.com/Wanderer19/First.git"/>
-
-    <property name="projectDirectory" value="First"/>
-    <property name="moduleNames" value="First"/>
+    <property name="sourceRepositoryUrl" value="https://github.com/Wanderer19/First.git"/>
+    <property name="sourceRepositoryName" value="First"/>
     <property name="branchName" value="newBranch"/>
-    <property name="sources" value="sources"/>
-    <property name="maven.home" value="C:\Program Files\Appache\apache-maven-3.2.5"/>
-    <property name="archives" value="archives"/>
+    <property name="moduleNames" value="First,First1"/>
+
+    <property name="mavenHome" value="C:\Program Files\Appache\apache-maven-3.2.5"/>
     <property name="localRepository" value="C:\Users\wanderer\Desktop\repo"/>
-    <property name="git-location" value="C:\Program Files (x86)\Git\bin\git.exe"/>
+    <property name="gitLocation" value="C:\Program Files (x86)\Git\bin\git.exe"/>
 
-
-    <target name="all">
-        <antcall target="clean-all"/>
-        <antcall target="creating"/>
-        <antcall target="git-cloning"/>
-        <antcall target="zip-sources"/>
-        <antcall target="building"/>
-        <antcall target="zip-libs"/>
-        <antcall target="zip-modules"/>
-        <antcall target="delete-sources-and-local-repo"/>
-
-    </target>
-
-    <taskdef resource="net/sf/antcontrib/antlib.xml"/>
-
-    <target name="zip-modules">
+    <target name="main">
         <antcall target="bootstrap"/>
-        <for  param="moduleName" list="${moduleNames}">
-            <sequential>
-                <echo message="param: @{moduleName}"/>
-                <copy todir="${archives}/modules">
-                    <fileset dir="${sources}/@{moduleName}/target" includes="*.jar, *.war, *.ear"/>
-                </copy>
-            </sequential>
-        </for>
-        <zip destfile="${archives}/modules.zip"  basedir="${archives}/modules"
-             update="true"/>
-    </target>
+        <antcall target="cleanAll"/>
+        <antcall target="creatingNeededDirs"/>
+        <antcall target="gitCloning"/>
+        <antcall target="zipsSources"/>
+        <antcall target="building"/>
+        <antcall target="zipLibs"/>
+        <antcall target="zipModules"/>
+        <antcall target="deleteSourcesAndLocalRepo"/>
 
+    </target>
 
     <target name="bootstrap">
         <mkdir dir="${user.home}/.ant/lib"/>
         <get dest="${user.home}/.ant/lib/ant-contrib.jar" src="http://search.maven.org/remotecontent?filepath=ant-contrib/ant-contrib/1.0b3/ant-contrib-1.0b3.jar"/>
     </target>
 
-    <target name="clean-all">
-        <delete dir="${sources}"/>
-        <delete dir="${archives}"/>
-        <delete dir="${archives}/modules"/>
+    <target name="cleanAll">
+        <delete dir="sources"/>
+        <delete dir="archives"/>
+        <delete dir="archives/modules"/>
         <delete dir="${localRepository}"/>
     </target>
 
-    <target name="creating">
-        <mkdir dir="${sources}"/>
-        <mkdir dir="${archives}"/>
-        <mkdir dir="${archives}/modules"/>
+    <target name="creatingNeededDirs">
+        <mkdir dir="sources"/>
+        <mkdir dir="archives"/>
+        <mkdir dir="archives/modules"/>
         <mkdir dir="${localRepository}"/>
     </target>
 
-    <target name="git-cloning">
+    <target name="gitCloning">
         <exec executable="cmd">
             <arg value="/c"/>
             <arg value="git-cloning.bat"/>
-            <arg value="${sources}"/>
-            <arg value="${git-location}"/>
+            <arg value="sources"/>
+            <arg value="${gitLocation}"/>
             <arg value="${branchName}"/>
-            <arg value="${sourceRepository}"/>
+            <arg value="${sourceRepositoryUrl}"/>
             <arg value="-p"/>
         </exec>
     </target>
 
-    <target name="zip-sources">
-        <zip destfile="${archives}/sources.zip"  basedir="${sources}"
+    <target name="zipsSources">
+        <zip destfile="archives/sources.zip"  basedir="sources"
              update="true"/>
     </target>
+
+    <target name="building">
+        <for  param="moduleName" list="${moduleNames}">
+            <sequential>
+                <maven basedir="sources/${sourceRepositoryName}/@{moduleName}"
+                       goal="clean install"
+                       resultproperty="maven.build.result"/>
+            </sequential>
+        </for>
+    </target>
+
+    <target name="zipLibs">
+        <zip destfile="archives/libs.zip"  basedir="${localRepository}"
+             update="true"/>
+    </target>
+
+    <target name="zipModules">
+
+        <for  param="moduleName" list="${moduleNames}">
+            <sequential>
+                <copy todir="archives/modules">
+                    <fileset dir="sources/${sourceRepositoryName}/@{moduleName}/target" includes="*.jar, *.war, *.ear"/>
+                </copy>
+            </sequential>
+        </for>
+        <zip destfile="archives/modules.zip"  basedir="archives/modules"
+             update="true"/>
+    </target>
+
+    <target name="deleteSourcesAndLocalRepo">
+        <delete dir="sources"/>
+        <delete dir="${localRepository}"/>
+        <delete dir="archives/modules"/>
+    </target>
+
+    <taskdef resource="net/sf/antcontrib/antlib.xml"/>
 
     <macrodef name="maven">
         <attribute name="options" default="" />
@@ -88,37 +105,17 @@
                   dir="@{basedir}" resultproperty="@{resultproperty}">
                 <jvmarg value="-Xmx512m"/>
                 <classpath>
-                    <fileset dir="${maven.home}/boot">
+                    <fileset dir="${mavenHome}/boot">
                         <include name="*.jar" />
                     </fileset>
-                    <fileset dir="${maven.home}/lib">
+                    <fileset dir="${mavenHome}/lib">
                         <include name="*.jar" />
                     </fileset>
                 </classpath>
-                <sysproperty key="classworlds.conf" value="${maven.home}/bin/m2.conf" />
-                <sysproperty key="maven.home" value="${maven.home}" />
+                <sysproperty key="classworlds.conf" value="${mavenHome}/bin/m2.conf" />
+                <sysproperty key="maven.home" value="${mavenHome}" />
                 <arg line="--batch-mode -Dmaven.repo.local=${localRepository} -DskipTests=true --update-snapshots @{goal}" />
             </java>
         </sequential>
     </macrodef>
-    
-    <target name="building">
-        <maven basedir="${sources}/${projectDirectory}"
-               goal="clean install"
-               resultproperty="maven.build.result"/>
-    </target>
-
-    <target name="zip-libs">
-        <zip destfile="${archives}/libs.zip"  basedir="${localRepository}"
-             update="true"/>
-    </target>
-
-    <target name="delete-sources-and-local-repo">
-        <delete dir="${sources}"/>
-        <delete dir="${localRepository}"/>
-        <delete dir="${archives}/modules"/>
-    </target>
-
-
-
 </project>
