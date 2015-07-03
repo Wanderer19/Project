@@ -43,9 +43,7 @@
             <delete dir="sources"/>
             <delete dir="archives"/>
             <delete dir="archives/install"/>
-           <!--
             <delete dir="${localRepository}"/>
-           -->
         </target>
 
         <target name="creatingNeededDirs">
