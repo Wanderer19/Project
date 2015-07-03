@@ -3,10 +3,10 @@
     <property name="sourceRepositoryUrl" value="https://github.com/Wanderer19/First.git"/>
     <property name="sourceRepositoryName" value="First"/>
     <property name="branchName" value="newBranch"/>
-    <property name="moduleNames" value="First,First1"/>
-
+    <property name="modulePaths" value="First\First,First\First1"/>
+    <property name="pomPath" value="First\First"/>
     <property name="mavenHome" value="C:\Program Files\Appache\apache-maven-3.2.5"/>
-    <property name="localRepository" value="C:\Users\wanderer\Desktop\repo"/>
+    <property name="localRepository" value="C:\Users\wanderer\Desktop\repository"/>
     <property name="gitLocation" value="C:\Program Files (x86)\Git\bin\git.exe"/>
 
     <target name="main">
@@ -19,7 +19,6 @@
         <antcall target="zipLibs"/>
         <antcall target="zipModules"/>
         <antcall target="deleteSourcesAndLocalRepo"/>
-
     </target>
 
     <target name="bootstrap">
@@ -59,13 +58,14 @@
     </target>
 
     <target name="building">
-        <for  param="moduleName" list="${moduleNames}">
-            <sequential>
-                <maven basedir="sources/${sourceRepositoryName}/@{moduleName}"
-                       goal="clean install"
-                       resultproperty="maven.build.result"/>
-            </sequential>
-        </for>
+        <sequential>
+            <exec executable="cmd">
+                <arg value="/c"/>
+                <arg value="build.bat"/>
+                <arg value="sources/${pomPath}"/>
+                <arg value="-p"/>
+            </exec>
+        </sequential>
     </target>
 
     <target name="zipLibs">
@@ -74,11 +74,10 @@
     </target>
 
     <target name="zipModules">
-
-        <for  param="moduleName" list="${moduleNames}">
+        <for  param="modulePath" list="${modulePaths}">
             <sequential>
                 <copy todir="archives/modules">
-                    <fileset dir="sources/${sourceRepositoryName}/@{moduleName}/target" includes="*.jar, *.war, *.ear"/>
+                    <fileset dir="sources/@{modulePath}/target" includes="*.jar, *.war, *.ear"/>
                 </copy>
             </sequential>
         </for>
@@ -93,29 +92,4 @@
     </target>
 
     <taskdef resource="net/sf/antcontrib/antlib.xml"/>
-
-    <macrodef name="maven">
-        <attribute name="options" default="" />
-        <attribute name="goal" />
-        <attribute name="basedir" />
-        <attribute name="resultproperty" default="maven.result" />
-        <element name="args" implicit="true" optional="true" />
-        <sequential>
-            <java classname="org.codehaus.classworlds.Launcher" fork="true"
-                  dir="@{basedir}" resultproperty="@{resultproperty}">
-                <jvmarg value="-Xmx512m"/>
-                <classpath>
-                    <fileset dir="${mavenHome}/boot">
-                        <include name="*.jar" />
-                    </fileset>
-                    <fileset dir="${mavenHome}/lib">
-                        <include name="*.jar" />
-                    </fileset>
-                </classpath>
-                <sysproperty key="classworlds.conf" value="${mavenHome}/bin/m2.conf" />
-                <sysproperty key="maven.home" value="${mavenHome}" />
-                <arg line="--batch-mode -Dmaven.repo.local=${localRepository} -DskipTests=true --update-snapshots @{goal}" />
-            </java>
-        </sequential>
-    </macrodef>
 </project>
