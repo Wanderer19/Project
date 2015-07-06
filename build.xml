@@ -20,7 +20,11 @@
             <antcall target="getRepositoriesArtifacts"/>
             <antcall target="zipArtifacts"/>
 
-            <antcall target="deleteSourcesAndLocalRepo"/>
+           <!-- <antcall target="deleteSourcesAndLocalRepo"/> -->
+        </target>
+
+        <target name="do">
+            <getModulesArtifacts project="tern.java"/>
         </target>
 
         <target name="bootstrap">
@@ -135,10 +139,12 @@
                 <for  param="modulePath" list="${@{project}.modules}">
                     <sequential>
                         <copy todir="archives/install/@{project}/@{modulePath}">
-                            <fileset dir="sources/@{project}/@{modulePath}/**/target" includes="*.jar, *.war, *.ear"/>
+                            <fileset dir="sources/@{project}/@{modulePath}/" includes="**/target/*.jar, **/target/*.war, **/target/*.ear"/>
+                            <regexpmapper handledirsep="yes" from="^(.*)/target/(.*)\.jar$$" to="\2\.jar"/>
                         </copy>
                     </sequential>
                 </for>
+
             </sequential>
         </macrodef>
 
