@@ -26,7 +26,6 @@
         <target name="do">
             <getModulesArtifacts project="tern.java"/>
         </target>
-
         <target name="bootstrap">
             <mkdir dir="${user.home}/.ant/lib"/>
             <get dest="${user.home}/.ant/lib/ant-contrib.jar" src="http://search.maven.org/remotecontent?filepath=ant-contrib/ant-contrib/1.0b3/ant-contrib-1.0b3.jar"/>
@@ -139,8 +138,8 @@
                 <for  param="modulePath" list="${@{project}.modules}">
                     <sequential>
                         <copy todir="archives/install/@{project}/@{modulePath}">
-                            <fileset dir="sources/@{project}/@{modulePath}/" includes="**/target/*.jar, **/target/*.war, **/target/*.ear"/>
-                            <regexpmapper handledirsep="yes" from="^(.*)/target/(.*)\.jar$$" to="\2\.jar"/>
+                            <fileset dir="sources/@{project}/@{modulePath}" includes="**/target/*.jar, **/target/*.war, **/target/*.ear"/>
+                            <regexpmapper handledirsep="yes" from="^(.*)target/(.*)\.([jwe])ar$$" to="\2\.\3ar"/>
                         </copy>
                     </sequential>
                 </for>
