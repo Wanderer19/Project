@@ -2,20 +2,9 @@
 
         <property name="mavenHome" value="C:\Program Files\Appache\apache-maven-3.2.5"/>
         <property name="gitLocation" value="C:\Program Files (x86)\Git\bin\git.exe"/>
+        <property name="localRepository" value="C:\\Users\\wanderer\\Desktop\\libs"/>
 
-        <property name="localRepository" value="C:\Users\wanderer\Desktop\libs"/>
-        <property name="sourceRepositoryUrls" value="https://github.com/angelozerr/tern.java.git,https://github.com/datastax/java-driver.git"/>
-
-        <property name="https://github.com/angelozerr/tern.java.git.branch" value="master"/>
-        <property name="https://github.com/datastax/java-driver.git.branch" value="2.1"/>
-        <property name="https://github.com/angelozerr/tern.java.git.pom" value="tern.java"/>
-        <property name="https://github.com/datastax/java-driver.git.pom" value="java-driver"/>
-
-        <property name="https://github.com/angelozerr/tern.java.git.project" value="tern.java"/>
-        <property name="https://github.com/datastax/java-driver.git.project" value="java-driver"/>
-
-        <property name="https://github.com/angelozerr/tern.java.git.modules" value="core,eclipse"/>
-        <property name="https://github.com/datastax/java-driver.git.modules" value="driver-core,driver-mapping"/>
+        <loadproperties srcFile="my.properties"/>
 
         <target name="all">
             <antcall target="bootstrap"/>
@@ -34,7 +23,7 @@
             <antcall target="deleteSourcesAndLocalRepo"/>
         </target>
 
-         <target name="bootstrap">
+        <target name="bootstrap">
             <mkdir dir="${user.home}/.ant/lib"/>
             <get dest="${user.home}/.ant/lib/ant-contrib.jar" src="http://search.maven.org/remotecontent?filepath=ant-contrib/ant-contrib/1.0b3/ant-contrib-1.0b3.jar"/>
          </target>
@@ -44,7 +33,7 @@
             <delete dir="archives"/>
             <delete dir="archives/install"/>
             <delete dir="archives/sources"/>
-            <delete dir="${localRepository}"/>
+            <!--<delete dir="${localRepository}"/> -->
 
         </target>
 
@@ -53,27 +42,27 @@
             <mkdir dir="archives"/>
             <mkdir dir="archives/install"/>
             <mkdir dir="archives/sources"/>
-            <mkdir dir="${localRepository}"/>
+           <!-- <mkdir dir="${localRepository}"/> -->
         </target>
 
         <target name="cloneSource">
-            <for  param="repoUrl" list="${sourceRepositoryUrls}">
+            <for  param="project" list="${projects}">
                 <sequential>
-                    <clone repoUrl="@{repoUrl}"/>
+                    <clone project="@{project}"/>
                 </sequential>
             </for>
         </target>
 
         <macrodef name="clone">
-            <attribute name="repoUrl"/>
+            <attribute name="project"/>
             <sequential>
                 <exec executable="cmd">
                     <arg value="/c"/>
                     <arg value="git-cloning.bat"/>
                     <arg value="sources"/>
                     <arg value="${gitLocation}"/>
-                    <arg value="${@{repoUrl}.branch}"/>
-                    <arg value="@{repoUrl}"/>
+                    <arg value="${@{project}.branch}"/>
+                    <arg value="${@{project}.url}"/>
                     <arg value="-p"/>
                 </exec>
             </sequential>
@@ -81,9 +70,9 @@
 
          <target name="zipSource">
 
-             <for  param="repoUrl" list="${sourceRepositoryUrls}">
+             <for  param="project" list="${projects}">
                  <sequential>
-                     <gitArchive destdir="archives/sources/${@{repoUrl}.project}-sources.zip" basedir="sources/${@{repoUrl}.project}"/>
+                     <gitArchive destdir="archives/sources/@{project}-sources.zip" basedir="sources/@{project}"/>
                  </sequential>
              </for>
         </target>
@@ -91,9 +80,9 @@
 
 
         <target name="buildSource">
-            <for  param="repoUrl" list="${sourceRepositoryUrls}">
+            <for  param="project" list="${projects}">
                 <sequential>
-                    <build repoUrl="@{repoUrl}"/>
+                    <build project="@{project}"/>
                 </sequential>
             </for>
         </target>
@@ -114,12 +103,13 @@
         </macrodef>
 
         <macrodef name="build">
-            <attribute name="repoUrl"/>
+            <attribute name="project"/>
             <sequential>
                 <exec executable="cmd">
                     <arg value="/c"/>
                     <arg value="build.bat"/>
-                    <arg value="sources/${@{repoUrl}.pom}"/>
+                    <arg value="sources/${@{project}.pom}"/>
+                    <arg value="${localRepository}"/>
                     <arg value="-p"/>
                 </exec>
             </sequential>
@@ -131,21 +121,21 @@
         </target>
 
         <target name="getRepositoriesArtifacts">
-            <for  param="repoUrl" list="${sourceRepositoryUrls}">
+            <for  param="project" list="${projects}">
                 <sequential>
-                    <mkdir dir="archives/install/${@{repoUrl}.project}"/>
-                    <getModulesArtifacts repoUrl="@{repoUrl}"/>
+                    <mkdir dir="archives/install/@{project}"/>
+                    <getModulesArtifacts project="@{project}"/>
                 </sequential>
             </for>
         </target>
 
         <macrodef name="getModulesArtifacts">
-            <attribute name="repoUrl"/>
+            <attribute name="project"/>
             <sequential>
-                <for  param="modulePath" list="${@{repoUrl}.modules}">
+                <for  param="modulePath" list="${@{project}.modules}">
                     <sequential>
-                        <copy todir="archives/install/${@{repoUrl}.project}/@{modulePath}">
-                            <fileset dir="sources/${@{repoUrl}.project}/@{modulePath}" includes="**/target/*.jar, **/target/*.war, **/target/*.ear"/>
+                        <copy todir="archives/install/@{project}/@{modulePath}">
+                            <fileset dir="sources/@{project}/@{modulePath}/**/target" includes="*.jar, *.war, *.ear"/>
                         </copy>
                     </sequential>
                 </for>
@@ -160,7 +150,7 @@
 
         <target name="deleteSourcesAndLocalRepo">
             <delete dir="sources"/>
-           <delete dir="${localRepository}"/>
+            <delete dir="${localRepository}"/>
             <delete dir="archives/install"/>
         </target>
 
