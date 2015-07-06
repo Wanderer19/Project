@@ -2,7 +2,7 @@
 
         <property name="mavenHome" value="C:\Program Files\Appache\apache-maven-3.2.5"/>
         <property name="gitLocation" value="C:\Program Files (x86)\Git\bin\git.exe"/>
-        <property name="localRepository" value="C:\\Users\\wanderer\\Desktop\\libs"/>
+        <property name="localRepository" value="libs"/>
 
         <loadproperties srcFile="my.properties"/>
 
@@ -20,12 +20,9 @@
             <antcall target="getRepositoriesArtifacts"/>
             <antcall target="zipArtifacts"/>
 
-           <!-- <antcall target="deleteSourcesAndLocalRepo"/> -->
+            <antcall target="deleteSourcesAndLocalRepo"/>
         </target>
 
-        <target name="do">
-            <getModulesArtifacts project="tern.java"/>
-        </target>
         <target name="bootstrap">
             <mkdir dir="${user.home}/.ant/lib"/>
             <get dest="${user.home}/.ant/lib/ant-contrib.jar" src="http://search.maven.org/remotecontent?filepath=ant-contrib/ant-contrib/1.0b3/ant-contrib-1.0b3.jar"/>
@@ -36,7 +33,7 @@
             <delete dir="archives"/>
             <delete dir="archives/install"/>
             <delete dir="archives/sources"/>
-            <!--<delete dir="${localRepository}"/> -->
+            <delete dir="${localRepository}"/>
 
         </target>
 
@@ -45,7 +42,7 @@
             <mkdir dir="archives"/>
             <mkdir dir="archives/install"/>
             <mkdir dir="archives/sources"/>
-           <!-- <mkdir dir="${localRepository}"/> -->
+            <mkdir dir="${localRepository}"/>
         </target>
 
         <target name="cloneSource">
@@ -126,7 +123,6 @@
         <target name="getRepositoriesArtifacts">
             <for  param="project" list="${projects}">
                 <sequential>
-                    <mkdir dir="archives/install/@{project}"/>
                     <getModulesArtifacts project="@{project}"/>
                 </sequential>
             </for>
